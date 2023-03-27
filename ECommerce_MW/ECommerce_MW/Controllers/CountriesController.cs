@@ -61,9 +61,11 @@ namespace ECommerce_MW.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(country);
+               
                 try
                 {
+                    country.CreatedDate = DateTime.Now;
+                    _context.Add(country);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
 
@@ -119,6 +121,7 @@ namespace ECommerce_MW.Controllers
             {
                 try
                 {
+                    country.ModifiedDate = DateTime.Now;    
                     _context.Update(country);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -210,8 +213,8 @@ namespace ECommerce_MW.Controllers
                         Cities = new List<City>(),
                         Country = await _context.Countries.FindAsync(stateViewModel.CountryId),
                         Name = stateViewModel.Name,
-                        CreatedDate = stateViewModel.CreatedDate,
-                        ModifiedDate = DateTime.Now,
+                        CreatedDate = DateTime.Now,
+                        ModifiedDate = null,
                     };
                     _context.Add(state);
                     await _context.SaveChangesAsync();
