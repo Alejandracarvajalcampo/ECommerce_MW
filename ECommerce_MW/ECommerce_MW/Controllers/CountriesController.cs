@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ECommerce_MW.DAL;
 using ECommerce_MW.DAL.Entities;
+using ECommerce_MW.Models;
 
 namespace ECommerce_MW.Controllers
 {
@@ -22,8 +23,9 @@ namespace ECommerce_MW.Controllers
         // GET: Countries
         public async Task<IActionResult> Index()
         {
-            return  View(await _context.Countries.ToListAsync());
-                    
+            var x = await _context.Countries.Include(c => c.States).ToListAsync();
+            return View(x);
+
         }
 
         // GET: Countries/Details/5
@@ -34,7 +36,7 @@ namespace ECommerce_MW.Controllers
                 return NotFound();
             }
 
-            var country = await _context.Countries
+            Country country = await _context.Countries
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (country == null)
             {
@@ -93,7 +95,7 @@ namespace ECommerce_MW.Controllers
                 return NotFound();
             }
 
-            var country = await _context.Countries.FindAsync(id);
+            Country country = await _context.Countries.FindAsync(id);
             if (country == null)
             {
                 return NotFound();
@@ -141,15 +143,15 @@ namespace ECommerce_MW.Controllers
         }
 
         // GET: Countries/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
+        public async Task<IActionResult> Delete(Guid? countryId)
         {
-            if (id == null || _context.Countries == null)
+            if (countryId == null || _context.Countries == null)
             {
                 return NotFound();
             }
 
-            var country = await _context.Countries
-                .FirstOrDefaultAsync(m => m.Id == id);
+            Country country = await _context.Countries
+                .FirstOrDefaultAsync(m => m.Id == countryId);
             if (country == null)
             {
                 return NotFound();
@@ -161,25 +163,82 @@ namespace ECommerce_MW.Controllers
         // POST: Countries/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
+        public async Task<IActionResult> DeleteConfirmed(Guid Id)
         {
             if (_context.Countries == null)
             {
                 return Problem("Entity set 'DatabaseContext.Countries'  is null.");
             }
-            var country = await _context.Countries.FindAsync(id);
+            Country country = await _context.Countries.FindAsync(Id);
             if (country != null)
             {
                 _context.Countries.Remove(country);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CountryExists(Guid id)
+        [HttpGet]
+        public async Task<IActionResult> AddState(Guid? countryId)
         {
-          return (_context.Countries?.Any(e => e.Id == id)).GetValueOrDefault();
+            if (countryId == null)
+            {
+                return NotFound();
+            }
+            Country country = await _context.Countries.FindAsync(countryId);
+            if (country == null)
+            {
+                return NotFound();
+            }
+            StateViewModel stateViewModel = new()
+            {
+                CountryId = country.Id,
+            };
+            return View(stateViewModel);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddState(StateViewModel stateViewModel)
+        {
+            if (ModelState.IsValid) 
+            {
+                try
+                {
+                    State state = new State()
+                    {
+                        Cities = new List<City>(),
+                        Country = await _context.Countries.FindAsync(stateViewModel.CountryId),
+                        Name = stateViewModel.Name,
+                        CreatedDate = stateViewModel.CreatedDate,
+                        ModifiedDate = DateTime.Now,
+                    };
+                    _context.Add(state);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Details), new { Id = stateViewModel.CountryId });
+                }
+                catch (DbUpdateException dbUpdateException) 
+                {
+                    if (dbUpdateException.InnerException.Message.Contains("duplicate"))
+                    {
+                        ModelState.AddModelError(string.Empty, dbUpdateException.InnerException.Message);
+                    }
+                    else 
+                    {
+                        ModelState.AddModelError(string.Empty, dbUpdateException.InnerException.Message);
+                    }
+                }
+                catch (Exception exception) 
+                {
+                ModelState.AddModelError(string.Empty, exception.Message);
+                }
+            } 
+            return View(stateViewModel);
+        }
+
     }
+
 }
+
+
+
