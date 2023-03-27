@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ECommerce_MW.DAL.Entities.Country>
+﻿@model IEnumerable<ECommerce_MW.DAL.Entities.Category>
 
 @{
     ViewData["Title"] = "Index";
@@ -6,9 +6,8 @@
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/jquery.dataTables.min.css" />
 
-
 <p>
-    <a asp-action="Create" class="btn btn-outline-primary">Crear nuevo pais</a>
+    <a asp-action="Create" class="btn btn-outline-primary">Crear nueva categoria</a>
 </p>
 
 
@@ -16,7 +15,7 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Países</h3>
+                <h3 class="panel-title">Categorias</h3>
             </div>
             <div class="panel-body">
                 <table class="table table-hover table-responsive table-striped" id="CountryTable">
